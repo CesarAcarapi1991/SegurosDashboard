@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPencilAlt, FaTrash } from "react-icons/fa";
+import { HiSearch } from "react-icons/hi";
 import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 
@@ -30,6 +31,7 @@ const Bloques: React.FC = () => {
   const [selectedBloque, setSelectedBloque] = useState<Bloque | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const bloquesPerPage = 5;
 
   // Cargar bloques y productos
@@ -113,69 +115,108 @@ const Bloques: React.FC = () => {
   // Paginación
   const indexOfLast = currentPage * bloquesPerPage;
   const indexOfFirst = indexOfLast - bloquesPerPage;
-  const currentBloques = bloques.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(bloques.length / bloquesPerPage);
+
+  // Add search filter
+  const filteredBloques = bloques.filter(bloque =>
+    bloque.titulo_bloque.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Update pagination
+  const currentBloques = filteredBloques.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredBloques.length / bloquesPerPage);
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between mb-4 items-center">
-        <h2 className="text-sm font-semibold text-gray-800">Bloques</h2>
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700 transition"
-        >
-          + Nuevo Bloque
-        </button>
+    <div className="min-h-screen bg-gray-200/50 p-4">
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        {/* Header */}
+        <div className="flex justify-between mb-4 items-center">
+          <h2 className="text-sm font-semibold text-gray-800">Bloques</h2>
+          <button
+            onClick={() => openModal()}
+            className="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700 transition"
+          >
+            + Nuevo Bloque
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-4">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por título de bloque..."
+              className="w-full border px-4 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+              <HiSearch className="text-gray-400" />
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
-          <thead className="bg-gray-900 text-white text-xs uppercase tracking-wide">
-            <tr>
-              <th className="border px-2 py-2 text-center">ID</th>
-              <th className="border px-2 py-2 text-left">Producto</th>
-              <th className="border px-2 py-2 text-left">Nro Bloque</th>
-              <th className="border px-2 py-2 text-left">Título</th>
-              <th className="border px-2 py-2 text-left">Estado</th>
-              <th className="border px-2 py-2 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentBloques.map((bloq, idx) => (
-              <tr
-                key={bloq.id}
-                className={clsx(
-                  idx % 2 === 0 ? "bg-gray-50" : "bg-white",
-                  "hover:bg-gray-100 transition-colors"
-                )}
-              >
-                <td className="border px-2 py-2 text-center">{bloq.id}</td>
-                <td className="border px-2 py-2">
-                  {productos.find((p) => p.id === bloq.id_producto)?.producto}
-                </td>
-                <td className="border px-2 py-2">{bloq.nro_bloque}</td>
-                <td className="border px-2 py-2">{bloq.titulo_bloque}</td>
-                <td className="border px-2 py-2">{bloq.estado === 1 ? "Activo" : "Inactivo"}</td>
-                <td className="border px-2 py-2 flex justify-center space-x-2">
-                  <button
-                    onClick={() => openModal(bloq)}
-                    className="bg-yellow-200 text-yellow-800 p-1 rounded hover:bg-yellow-300 shadow-sm"
-                  >
-                    <FaPencilAlt size={14} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(bloq)}
-                    className="bg-red-200 text-red-800 p-1 rounded hover:bg-red-300 shadow-sm"
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </td>
+      <div className="bg-white rounded-lg shadow-sm">
+        {/* Tabla */}
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
+            <thead>
+              <tr className="bg-[#09589f]">
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  ID
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Producto
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Nro Bloque
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Título
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Estado
+                </th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentBloques.map((bloq, idx) => (
+                <tr
+                  key={bloq.id}
+                  className={clsx(
+                    idx % 2 === 0 ? "bg-gray-50" : "bg-white",
+                    "hover:bg-gray-100 transition-colors"
+                  )}
+                >
+                  <td className="border px-2 py-2 text-center">{bloq.id}</td>
+                  <td className="border px-2 py-2">
+                    {productos.find((p) => p.id === bloq.id_producto)?.producto}
+                  </td>
+                  <td className="border px-2 py-2">{bloq.nro_bloque}</td>
+                  <td className="border px-2 py-2">{bloq.titulo_bloque}</td>
+                  <td className="border px-2 py-2">{bloq.estado === 1 ? "Activo" : "Inactivo"}</td>
+                  <td className="border px-2 py-2 flex justify-center space-x-2">
+                    <button
+                      onClick={() => openModal(bloq)}
+                      className="bg-yellow-200 text-yellow-800 p-1 rounded hover:bg-yellow-300 shadow-sm"
+                    >
+                      <FaPencilAlt size={14} />
+                    </button>
+                    <button
+                      onClick={() => confirmDelete(bloq)}
+                      className="bg-red-200 text-red-800 p-1 rounded hover:bg-red-300 shadow-sm"
+                    >
+                      <FaTrash size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Paginación */}
@@ -254,7 +295,7 @@ const Bloques: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
               >
                 Cancelar
               </button>
@@ -278,7 +319,7 @@ const Bloques: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
               >
                 Cancelar
               </button>

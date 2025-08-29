@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 import OperacionCliente from "./OperacionCliente";
 import OperacionProducto from "./OperacionProducto";
+import { HiSearch } from 'react-icons/hi';
 
 interface OperacionPayload {
   nro_poliza?: string;
@@ -34,6 +35,26 @@ interface OperacionPayload {
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const colors = {
+  primary: {
+    main: '#0097a6',
+    light: '#00adc0',
+    dark: '#007d8a',
+    bg: 'rgba(0, 151, 166, 0.1)',
+  },
+  secondary: {
+    main: '#09589f',
+    light: '#0a69bd',
+    dark: '#074781',
+    bg: 'rgba(9, 88, 159, 0.1)',
+  },
+  gray: {
+    main: '#374151',
+    light: '#e5e7eb',
+    bg: 'rgba(55, 65, 81, 0.05)',
+  }
+};
+
 const Operaciones: React.FC = () => {
   const { user } = useAuthStore();
 
@@ -44,6 +65,7 @@ const Operaciones: React.FC = () => {
   const operacionesPerPage = 5;
 
   const [operacionPayload, setOperacionPayload] = useState<OperacionPayload>({});
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchOperaciones();
@@ -94,85 +116,70 @@ const Operaciones: React.FC = () => {
     }
   };
 
+  // Add search filter
+  const filteredOperaciones = operaciones.filter(op =>
+    op.nro_poliza?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${op.primernombre} ${op.primerapellido}`.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Paginación
   const indexOfLast = currentPage * operacionesPerPage;
   const indexOfFirst = indexOfLast - operacionesPerPage;
-  const currentOperaciones = operaciones.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(operaciones.length / operacionesPerPage);
+  const currentOperaciones = filteredOperaciones.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredOperaciones.length / operacionesPerPage);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Breadcrumbs */}
-      <nav className="mb-6">
-        <ol className="flex text-xs text-gray-500">
-          <li className="flex items-center">
-            <span>Dashboard</span>
-            <svg className="h-4 w-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </li>
-          <li className="text-gray-700 font-medium">Operaciones</li>
-        </ol>
-      </nav>
-
-      {/* Header Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-gray-200/50 p-4">
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        {/* Header content */}
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Operaciones</h1>
-            <p className="text-sm text-gray-600">Gestiona las operaciones de seguros y sus beneficiarios</p>
+            <h1 className="text-xl font-semibold text-gray-800">Operaciones</h1>
+            <p className="text-xs text-gray-500">Gestión de operaciones de seguros</p>
           </div>
           <button
             onClick={() => openModal()}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
+            style={{
+              backgroundColor: colors.secondary.main,
+              color: 'white',
+            }}
           >
-            <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Nueva Operación
+            + Nueva Operación
           </button>
         </div>
 
-        {/* Filters & Search */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="col-span-1">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Estado</label>
-            <select className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-              <option value="">Todos</option>
-              <option value="1">Activo</option>
-              <option value="0">Inactivo</option>
-            </select>
-          </div>
-          <div className="col-span-1 md:col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Buscar</label>
+        {/* Search Bar */}
+        <div className="flex">
+          <div className="w-full max-w-xs">
             <div className="relative">
+              <HiSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar por nombre o número de póliza..."
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar operación..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
+                style={{
+                  borderColor: colors.gray.light,
+                  '--tw-ring-color': colors.secondary.main,
+                } as React.CSSProperties}
               />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
-              <tr className="bg-gray-50">
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nro Póliza</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              <tr className="bg-[#09589f]">
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Póliza</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Cliente</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Producto</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -183,7 +190,6 @@ const Operaciones: React.FC = () => {
                     {op.primernombre} {op.primerapellido}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{op.id_seguro_producto}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{op.id_certificado}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={clsx(
                       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
@@ -194,7 +200,7 @@ const Operaciones: React.FC = () => {
                       {op.estado === 1 ? "Activo" : "Inactivo"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
                     <button onClick={() => openModal(op)} className="text-blue-600 hover:text-blue-900">Editar</button>
                     <button className="text-green-600 hover:text-green-900">Beneficiario</button>
                     <button className="text-red-600 hover:text-red-900">Cancelar</button>
@@ -203,49 +209,6 @@ const Operaciones: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* Paginación mejorada */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Mostrando <span className="font-medium">{indexOfFirst + 1}</span> a{' '}
-                <span className="font-medium">{Math.min(indexOfLast, operaciones.length)}</span> de{' '}
-                <span className="font-medium">{operaciones.length}</span> resultados
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  Anterior
-                </button>
-                {Array.from({ length: totalPages }, (_, idx) => (
-                  <button
-                    key={idx + 1}
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={clsx(
-                      "relative inline-flex items-center px-4 py-2 border text-sm font-medium",
-                      currentPage === idx + 1
-                        ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                    )}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  Siguiente
-                </button>
-              </nav>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -270,7 +233,7 @@ const Operaciones: React.FC = () => {
               <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
                 >
                   Cancelar
                 </button>

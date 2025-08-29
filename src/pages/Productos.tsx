@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPencilAlt, FaTrash } from "react-icons/fa";
+import { HiSearch } from 'react-icons/hi';
 import clsx from "clsx";
 import { useAuthStore } from '../store/authStore';
 
@@ -54,6 +55,7 @@ const Productos: React.FC = () => {
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const productosPerPage = 5;
 
   // Cargar productos y empresas
@@ -134,11 +136,17 @@ const Productos: React.FC = () => {
     }
   };
 
+  // Add search filter
+  const filteredProductos = productos.filter(producto =>
+    producto.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    empresas.find(e => e.id === producto.empresa_id)?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Paginación
   const indexOfLast = currentPage * productosPerPage;
   const indexOfFirst = indexOfLast - productosPerPage;
-  const currentProductos = productos.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(productos.length / productosPerPage);
+  const currentProductos = filteredProductos.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredProductos.length / productosPerPage);
 
   return (
     <div className="min-h-screen bg-gray-200/50 p-4">
@@ -160,6 +168,26 @@ const Productos: React.FC = () => {
             + Nuevo Producto
           </button>
         </div>
+
+        {/* Search Bar */}
+        <div className="flex">
+          <div className="w-full max-w-xs">
+            <div className="relative">
+              <HiSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar producto..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
+                style={{
+                  borderColor: colors.gray.light,
+                  '--tw-ring-color': colors.secondary.main,
+                } as React.CSSProperties}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Table Section */}
@@ -167,13 +195,13 @@ const Productos: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">ID</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Empresa</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Producto</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Precio</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Estado</th>
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 tracking-wider">Acciones</th>
+              <tr className="bg-[#09589f]">
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">ID</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Empresa</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Producto</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Precio</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -264,88 +292,95 @@ const Productos: React.FC = () => {
               </div>
               
               <div className="p-4 space-y-3">
-                {/* Form fields */}
-                <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Empresa</label>
+                  <select
+                    value={selectedProducto.empresa_id}
+                    onChange={(e) => setSelectedProducto({ ...selectedProducto, empresa_id: Number(e.target.value) })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  >
+                    {empresas.map((e) => (
+                      <option key={e.id} value={e.id}>{e.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Producto</label>
+                  <input
+                    type="text"
+                    value={selectedProducto.producto}
+                    onChange={(e) => setSelectedProducto({ ...selectedProducto, producto: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Precio</label>
+                  <input
+                    type="text"
+                    value={selectedProducto.precio}
+                    onChange={(e) => setSelectedProducto({ ...selectedProducto, precio: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Descripción</label>
+                  <textarea
+                    value={selectedProducto.descripcion}
+                    onChange={(e) => setSelectedProducto({ ...selectedProducto, descripcion: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Formato Certificado</label>
+                  <input
+                    type="text"
+                    value={selectedProducto.formato_certificado}
+                    onChange={(e) => setSelectedProducto({ ...selectedProducto, formato_certificado: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Empresa</label>
-                    <select
-                      value={selectedProducto.empresa_id}
-                      onChange={(e) => setSelectedProducto({ ...selectedProducto, empresa_id: Number(e.target.value) })}
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Edad mínima</label>
+                    <input
+                      type="number"
+                      value={selectedProducto.edad_minima}
+                      onChange={(e) => setSelectedProducto({ ...selectedProducto, edad_minima: Number(e.target.value) })}
                       className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
                       style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
-                    >
-                      {empresas.map((e) => (
-                        <option key={e.id} value={e.id}>{e.nombre}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <input
-                    type="text"
-                    placeholder="Producto"
-                    value={selectedProducto.producto}
-                    onChange={(e) =>
-                      setSelectedProducto({ ...selectedProducto, producto: e.target.value })
-                    }
-                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Precio"
-                    value={selectedProducto.precio}
-                    onChange={(e) =>
-                      setSelectedProducto({ ...selectedProducto, precio: e.target.value })
-                    }
-                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
-                  />
-                  <textarea
-                    placeholder="Descripción"
-                    value={selectedProducto.descripcion}
-                    onChange={(e) =>
-                      setSelectedProducto({ ...selectedProducto, descripcion: e.target.value })
-                    }
-                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Formato Certificado"
-                    value={selectedProducto.formato_certificado}
-                    onChange={(e) =>
-                      setSelectedProducto({ ...selectedProducto, formato_certificado: e.target.value })
-                    }
-                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
-                  />
-                  <div className="flex space-x-2 mb-2">
-                    <input
-                      type="number"
-                      placeholder="Edad mínima"
-                      value={selectedProducto.edad_minima}
-                      onChange={(e) =>
-                        setSelectedProducto({ ...selectedProducto, edad_minima: Number(e.target.value) })
-                      }
-                      className="w-1/2 border px-2 py-1 rounded text-sm"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Edad máxima</label>
                     <input
                       type="number"
-                      placeholder="Edad máxima"
                       value={selectedProducto.edad_maxima}
-                      onChange={(e) =>
-                        setSelectedProducto({ ...selectedProducto, edad_maxima: Number(e.target.value) })
-                      }
-                      className="w-1/2 border px-2 py-1 rounded text-sm"
+                      onChange={(e) => setSelectedProducto({ ...selectedProducto, edad_maxima: Number(e.target.value) })}
+                      className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                      style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Cantidad beneficiarios</label>
                   <input
                     type="number"
-                    placeholder="Cantidad beneficiarios"
                     value={selectedProducto.cantidad_beneficiario}
-                    onChange={(e) =>
-                      setSelectedProducto({
-                        ...selectedProducto,
-                        cantidad_beneficiario: Number(e.target.value),
-                      })
-                    }
-                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
+                    onChange={(e) => setSelectedProducto({ ...selectedProducto, cantidad_beneficiario: Number(e.target.value) })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
                   />
                 </div>
               </div>
@@ -353,7 +388,7 @@ const Productos: React.FC = () => {
               <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
                 >
                   Cancelar
                 </button>
@@ -395,7 +430,7 @@ const Productos: React.FC = () => {
               <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
                 >
                   Cancelar
                 </button>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPencilAlt, FaTrash } from "react-icons/fa";
+import { HiSearch } from "react-icons/hi";
 import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 
@@ -31,6 +32,7 @@ const Preguntas: React.FC = () => {
   const [selectedPregunta, setSelectedPregunta] = useState<Pregunta | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const preguntasPerPage = 5;
 
   // Cargar preguntas y bloques
@@ -112,14 +114,19 @@ const Preguntas: React.FC = () => {
     }
   };
 
+  // Filtrar preguntas por término de búsqueda
+  const filteredPreguntas = preguntas.filter((pregunta) =>
+    pregunta.titulo_pregunta.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Paginación
   const indexOfLast = currentPage * preguntasPerPage;
   const indexOfFirst = indexOfLast - preguntasPerPage;
-  const currentPreguntas = preguntas.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(preguntas.length / preguntasPerPage);
+  const currentPreguntas = filteredPreguntas.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredPreguntas.length / preguntasPerPage);
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gray-200/50 p-4">
       {/* Header */}
       <div className="flex justify-between mb-4 items-center">
         <h2 className="text-sm font-semibold text-gray-800">Preguntas</h2>
@@ -131,18 +138,32 @@ const Preguntas: React.FC = () => {
         </button>
       </div>
 
+      {/* Barra de búsqueda */}
+      <div className="mb-4">
+        <div className="relative">
+          <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            placeholder="Buscar por título de pregunta"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full border px-10 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+        </div>
+      </div>
+
       {/* Tabla */}
       <div className="overflow-x-auto">
         <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
-          <thead className="bg-gray-900 text-white text-xs uppercase tracking-wide">
-            <tr>
-              <th className="border px-2 py-2 text-center">ID</th>
-              <th className="border px-2 py-2 text-left">Bloque</th>
-              <th className="border px-2 py-2 text-left">Nro Pregunta</th>
-              <th className="border px-2 py-2 text-left">Título</th>
-              <th className="border px-2 py-2 text-left">Tipo</th>
-              <th className="border px-2 py-2 text-left">Estado</th>
-              <th className="border px-2 py-2 text-center">Acciones</th>
+          <thead>
+            <tr className="bg-[#09589f]">
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">ID</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Bloque</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Pregunta</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Título</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Tipo</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
+              <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -268,7 +289,7 @@ const Preguntas: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
               >
                 Cancelar
               </button>
@@ -292,7 +313,7 @@ const Preguntas: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
               >
                 Cancelar
               </button>

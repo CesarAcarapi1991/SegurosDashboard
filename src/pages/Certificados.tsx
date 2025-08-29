@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPencilAlt, FaTrash } from "react-icons/fa";
+import { HiSearch } from 'react-icons/hi';
 import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 
@@ -23,6 +24,26 @@ interface Certificado {
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const colors = {
+  primary: {
+    main: '#0097a6',
+    light: '#00adc0',
+    dark: '#007d8a',
+    bg: 'rgba(0, 151, 166, 0.1)',
+  },
+  secondary: {
+    main: '#09589f',
+    light: '#0a69bd',
+    dark: '#074781',
+    bg: 'rgba(9, 88, 159, 0.1)',
+  },
+  gray: {
+    main: '#374151',
+    light: '#e5e7eb',
+    bg: 'rgba(55, 65, 81, 0.05)',
+  }
+};
+
 const Certificados: React.FC = () => {
   const { user } = useAuthStore();
   const [certificados, setCertificados] = useState<Certificado[]>([]);
@@ -33,6 +54,7 @@ const Certificados: React.FC = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const certificadosPerPage = 5;
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Cargar certificados y productos
   const fetchCertificados = async () => {
@@ -112,38 +134,87 @@ const Certificados: React.FC = () => {
     }
   };
 
+  // Filtrar certificados por búsqueda
+  const filteredCertificados = certificados.filter(cert =>
+    cert.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cert.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Paginación
   const indexOfLast = currentPage * certificadosPerPage;
   const indexOfFirst = indexOfLast - certificadosPerPage;
-  const currentCertificados = certificados.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(certificados.length / certificadosPerPage);
+  const currentCertificados = filteredCertificados.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredCertificados.length / certificadosPerPage);
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between mb-4 items-center">
-        <h2 className="text-sm font-semibold text-gray-800">Certificados</h2>
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700 transition"
-        >
-          + Nuevo Certificado
-        </button>
+    <div className="min-h-screen bg-gray-200/50 p-4">
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">Certificados</h1>
+            <p className="text-xs text-gray-500">Gestión de certificados</p>
+          </div>
+          <button
+            onClick={() => openModal()}
+            className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
+            style={{
+              backgroundColor: colors.secondary.main,
+              color: 'white',
+            }}
+          >
+            + Nuevo Certificado
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex">
+          <div className="w-full max-w-xs">
+            <div className="relative">
+              <HiSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar certificado..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
+                style={{
+                  borderColor: colors.gray.light,
+                  '--tw-ring-color': colors.secondary.main,
+                } as React.CSSProperties}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
-          <thead className="bg-gray-900 text-white text-xs uppercase tracking-wide">
-            <tr>
-              <th className="border px-2 py-2 text-center">ID</th>
-              <th className="border px-2 py-2 text-left">Producto</th>
-              <th className="border px-2 py-2 text-left">Código</th>
-              <th className="border px-2 py-2 text-left">Descripción</th>
-              <th className="border px-2 py-2 text-left">Fecha Emisión</th>
-              <th className="border px-2 py-2 text-left">Fecha Vencimiento</th>
-              <th className="border px-2 py-2 text-left">Estado</th>
-              <th className="border px-2 py-2 text-center">Acciones</th>
+      <div className="bg-white rounded-lg shadow-sm">
+        <table>
+          <thead>
+            <tr className="bg-[#09589f]">
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                ID
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                Producto
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                Código
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                Descripción
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                Fecha Emisión
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                Fecha Vencimiento
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                Estado
+              </th>
+              <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -296,7 +367,7 @@ const Certificados: React.FC = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
               >
                 Cancelar
               </button>
