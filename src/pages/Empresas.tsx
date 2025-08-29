@@ -1,10 +1,32 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaPencilAlt, FaTrash } from "react-icons/fa";
+import { HiPencil, HiTrash, HiSearch, HiPlus } from 'react-icons/hi';
 import clsx from "clsx";
 import { useAuthStore } from '../store/authStore';
+import { FaTrash } from "react-icons/fa";
 
 const API_URL = process.env.REACT_APP_API_URL;
+
+// Actualizar los colores para incluir el tema intermedio
+const colors = {
+  primary: {
+    main: '#0097a6',
+    light: '#00adc0',
+    dark: '#007d8a',
+    bg: 'rgba(0, 151, 166, 0.1)',
+  },
+  secondary: {
+    main: '#09589f',
+    light: '#0a69bd',
+    dark: '#074781',
+    bg: 'rgba(9, 88, 159, 0.1)',
+  },
+  gray: {
+    main: '#374151',
+    light: '#e5e7eb',
+    bg: 'rgba(55, 65, 81, 0.05)',
+  }
+};
 
 interface Empresa {
   id?: number;
@@ -22,6 +44,7 @@ const Empresas: React.FC = () => {
   const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const empresasPerPage = 5;
 
   // Cargar empresas
@@ -89,148 +112,229 @@ const Empresas: React.FC = () => {
   // Paginación
   const indexOfLast = currentPage * empresasPerPage;
   const indexOfFirst = indexOfLast - empresasPerPage;
-  const currentEmpresas = empresas.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(empresas.length / empresasPerPage);
+
+  // Función de búsqueda
+  const filteredEmpresas = empresas.filter(empresa =>
+    empresa.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    empresa.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Actualizar paginación para usar empresas filtradas
+  const currentEmpresas = filteredEmpresas.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredEmpresas.length / empresasPerPage);
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between mb-4 items-center">
-        <h2 className="text-sm font-semibold text-gray-800">Empresas</h2>
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700 transition"
-        >
-          + Nueva Empresa
-        </button>
-      </div>
-
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
-          <thead className="bg-gray-900 text-white text-xs uppercase tracking-wide">
-            <tr>
-              <th className="border px-2 py-2 text-center">ID</th>
-              <th className="border px-2 py-2 text-left">Nombre</th>
-              <th className="border px-2 py-2 text-left">Descripción</th>
-              <th className="border px-2 py-2 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentEmpresas.map((emp, idx) => (
-              <tr
-                key={emp.id}
-                className={clsx(
-                  idx % 2 === 0 ? "bg-gray-50" : "bg-white",
-                  "hover:bg-gray-100 transition-colors"
-                )}
-              >
-                <td className="border px-2 py-2 text-center">{emp.id}</td>
-                <td className="border px-2 py-2">{emp.nombre}</td>
-                <td className="border px-2 py-2">{emp.descripcion}</td>
-                <td className="border px-2 py-2 flex justify-center space-x-2">
-                  <button
-                    onClick={() => openModal(emp)}
-                    className="bg-yellow-200 text-yellow-800 p-1 rounded hover:bg-yellow-300 shadow-sm"
-                  >
-                    <FaPencilAlt size={14} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(emp)}
-                    className="bg-red-200 text-red-800 p-1 rounded hover:bg-red-300 shadow-sm"
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Paginación */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {Array.from({ length: totalPages }, (_, idx) => (
+    <div className="min-h-screen bg-gray-200/50 p-4">
+      {/* Header Section */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">Empresas Aseguradoras</h1>
+            <p className="text-xs text-gray-500">Gestión de empresas aseguradoras</p>
+          </div>
           <button
-            key={idx + 1}
-            onClick={() => setCurrentPage(idx + 1)}
-            className={clsx(
-              "px-2 py-1 rounded text-xs border shadow-sm",
-              currentPage === idx + 1
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 hover:bg-gray-100"
-            )}
+            onClick={() => openModal()}
+            className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
+            style={{
+              backgroundColor: colors.secondary.main,
+              color: 'white',
+            }}
           >
-            {idx + 1}
+            <HiPlus className="h-4 w-4 mr-1.5" />
+            Nueva Empresa
           </button>
-        ))}
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex">
+          <div className="w-full max-w-xs">
+            <div className="relative">
+              <HiSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar empresa..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
+                style={{
+                  borderColor: colors.gray.light,
+                  '--tw-ring-color': colors.secondary.main,
+                } as React.CSSProperties}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Modal Crear/Editar */}
+      {/* Table Section */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr className="bg-[#09589f]">
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">ID</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nombre Aseguradora</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Descripción</th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {currentEmpresas.map((emp) => (
+                <tr key={emp.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-xs text-gray-900">{emp.id}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{emp.nombre}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{emp.descripcion}</td>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => openModal(emp)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: colors.secondary.main,
+                          backgroundColor: colors.secondary.bg,
+                        }}
+                      >
+                        <HiPencil className="h-3 w-3 mr-1" />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(emp)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                      >
+                        <HiTrash className="h-3 w-3 mr-1" />
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, empresas.length)} de {empresas.length}
+            </p>
+            <nav className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={clsx(
+                    "px-2.5 py-1 text-xs font-medium rounded transition-colors",
+                    currentPage === idx + 1
+                      ? "text-white"
+                      : "text-gray-500 hover:bg-gray-100"
+                  )}
+                  style={
+                    currentPage === idx + 1 
+                      ? { backgroundColor: colors.secondary.main }
+                      : undefined
+                  }
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal Crear/Editar mejorado */}
       {showModal && selectedEmpresa && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-sm font-semibold mb-4">
-              {selectedEmpresa.id ? "Editar Empresa" : "Nueva Empresa"}
-            </h3>
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={selectedEmpresa.nombre}
-              onChange={(e) =>
-                setSelectedEmpresa({ ...selectedEmpresa, nombre: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <textarea
-              placeholder="Descripción"
-              value={selectedEmpresa.descripcion}
-              onChange={(e) =>
-                setSelectedEmpresa({ ...selectedEmpresa, descripcion: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-              >
-                Guardar
-              </button>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium" style={{ color: colors.secondary.main }}>
+                  {selectedEmpresa.id ? "Editar Empresa" : "Nueva Empresa"}
+                </h3>
+              </div>
+              
+              <div className="p-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Nombre</label>
+                  <input
+                    type="text"
+                    value={selectedEmpresa.nombre}
+                    onChange={(e) => setSelectedEmpresa({ ...selectedEmpresa, nombre: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                    placeholder="Ingrese el nombre de la empresa"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Descripción</label>
+                  <textarea
+                    value={selectedEmpresa.descripcion}
+                    onChange={(e) => setSelectedEmpresa({ ...selectedEmpresa, descripcion: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded"
+                  style={{ backgroundColor: colors.secondary.main }}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Eliminar */}
+      {/* Modal Eliminar mejorado */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-            <h3 className="text-sm font-semibold mb-4 text-red-600">
-              ¿Eliminar Empresa?
-            </h3>
-            <p className="text-xs mb-4 text-gray-600">
-              Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-              >
-                Eliminar
-              </button>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                      <FaTrash className="h-5 w-5 text-red-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Eliminar Empresa</h3>
+                    <p className="mt-2 text-xs text-gray-500">
+                      ¿Está seguro que desea eliminar esta empresa? Esta acción no se puede deshacer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded bg-red-600 hover:bg-red-700"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>

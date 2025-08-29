@@ -25,6 +25,26 @@ interface Producto {
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const colors = {
+  primary: {
+    main: '#0097a6',
+    light: '#00adc0',
+    dark: '#007d8a',
+    bg: 'rgba(0, 151, 166, 0.1)',
+  },
+  secondary: {
+    main: '#09589f',
+    light: '#0a69bd',
+    dark: '#074781',
+    bg: 'rgba(9, 88, 159, 0.1)',
+  },
+  gray: {
+    main: '#374151',
+    light: '#e5e7eb',
+    bg: 'rgba(55, 65, 81, 0.05)',
+  }
+};
+
 const Productos: React.FC = () => {
   const { user } = useAuthStore();
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -121,217 +141,271 @@ const Productos: React.FC = () => {
   const totalPages = Math.ceil(productos.length / productosPerPage);
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between mb-4 items-center">
-        <h2 className="text-sm font-semibold text-gray-800">Productos</h2>
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700 transition"
-        >
-          + Nuevo Producto
-        </button>
-      </div>
-
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
-          <thead className="bg-gray-900 text-white text-xs uppercase tracking-wide">
-            <tr>
-              <th className="border px-2 py-2 text-center">ID</th>
-              <th className="border px-2 py-2 text-left">Empresa</th>
-              <th className="border px-2 py-2 text-left">Producto</th>
-              <th className="border px-2 py-2 text-left">Precio</th>
-              <th className="border px-2 py-2 text-left">Descripción</th>
-              <th className="border px-2 py-2 text-left">Estado</th>
-              <th className="border px-2 py-2 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentProductos.map((prod, idx) => (
-              <tr
-                key={prod.id}
-                className={clsx(
-                  idx % 2 === 0 ? "bg-gray-50" : "bg-white",
-                  "hover:bg-gray-100 transition-colors"
-                )}
-              >
-                <td className="border px-2 py-2 text-center">{prod.id}</td>
-                <td className="border px-2 py-2">{empresas.find(e => e.id === prod.empresa_id)?.nombre}</td>
-                <td className="border px-2 py-2">{prod.producto}</td>
-                <td className="border px-2 py-2">{prod.precio}</td>
-                <td className="border px-2 py-2">{prod.descripcion}</td>
-                <td className="border px-2 py-2">{prod.estado === 1 ? "Activo" : "Inactivo"}</td>
-                <td className="border px-2 py-2 flex justify-center space-x-2">
-                  <button
-                    onClick={() => openModal(prod)}
-                    className="bg-yellow-200 text-yellow-800 p-1 rounded hover:bg-yellow-300 shadow-sm"
-                  >
-                    <FaPencilAlt size={14} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(prod)}
-                    className="bg-red-200 text-red-800 p-1 rounded hover:bg-red-300 shadow-sm"
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Paginación */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {Array.from({ length: totalPages }, (_, idx) => (
+    <div className="min-h-screen bg-gray-200/50 p-4">
+      {/* Header Section */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">Productos</h1>
+            <p className="text-xs text-gray-500">Gestión de productos de seguros</p>
+          </div>
           <button
-            key={idx + 1}
-            onClick={() => setCurrentPage(idx + 1)}
-            className={clsx(
-              "px-2 py-1 rounded text-xs border shadow-sm",
-              currentPage === idx + 1
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 hover:bg-gray-100"
-            )}
+            onClick={() => openModal()}
+            className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
+            style={{
+              backgroundColor: colors.secondary.main,
+              color: 'white',
+            }}
           >
-            {idx + 1}
+            + Nuevo Producto
           </button>
-        ))}
+        </div>
       </div>
 
-      {/* Modal Crear/Editar */}
-      {showModal && selectedProducto && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-sm font-semibold mb-4">
-              {selectedProducto.id ? "Editar Producto" : "Nuevo Producto"}
-            </h3>
-
-            {/* Select de empresa */}
-            <label className="text-xs font-medium">Empresa</label>
-            <select
-              value={selectedProducto.empresa_id}
-              onChange={(e) =>
-                setSelectedProducto({ ...selectedProducto, empresa_id: Number(e.target.value) })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            >
-              {empresas.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.nombre}
-                </option>
+      {/* Table Section */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">ID</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Empresa</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Producto</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Precio</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 tracking-wider">Estado</th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {currentProductos.map((prod) => (
+                <tr key={prod.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-xs text-gray-900">{prod.id}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{empresas.find(e => e.id === prod.empresa_id)?.nombre}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{prod.producto}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{prod.precio}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      prod.estado === 1 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {prod.estado === 1 ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => openModal(prod)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: colors.secondary.main,
+                          backgroundColor: colors.secondary.bg,
+                        }}
+                      >
+                        <FaPencilAlt className="h-3 w-3 mr-1" />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(prod)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                      >
+                        <FaTrash className="h-3 w-3 mr-1" />
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </select>
+            </tbody>
+          </table>
+        </div>
 
-            <input
-              type="text"
-              placeholder="Producto"
-              value={selectedProducto.producto}
-              onChange={(e) =>
-                setSelectedProducto({ ...selectedProducto, producto: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <input
-              type="text"
-              placeholder="Precio"
-              value={selectedProducto.precio}
-              onChange={(e) =>
-                setSelectedProducto({ ...selectedProducto, precio: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <textarea
-              placeholder="Descripción"
-              value={selectedProducto.descripcion}
-              onChange={(e) =>
-                setSelectedProducto({ ...selectedProducto, descripcion: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <input
-              type="text"
-              placeholder="Formato Certificado"
-              value={selectedProducto.formato_certificado}
-              onChange={(e) =>
-                setSelectedProducto({ ...selectedProducto, formato_certificado: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <div className="flex space-x-2 mb-2">
-              <input
-                type="number"
-                placeholder="Edad mínima"
-                value={selectedProducto.edad_minima}
-                onChange={(e) =>
-                  setSelectedProducto({ ...selectedProducto, edad_minima: Number(e.target.value) })
-                }
-                className="w-1/2 border px-2 py-1 rounded text-sm"
-              />
-              <input
-                type="number"
-                placeholder="Edad máxima"
-                value={selectedProducto.edad_maxima}
-                onChange={(e) =>
-                  setSelectedProducto({ ...selectedProducto, edad_maxima: Number(e.target.value) })
-                }
-                className="w-1/2 border px-2 py-1 rounded text-sm"
-              />
-            </div>
-            <input
-              type="number"
-              placeholder="Cantidad beneficiarios"
-              value={selectedProducto.cantidad_beneficiario}
-              onChange={(e) =>
-                setSelectedProducto({
-                  ...selectedProducto,
-                  cantidad_beneficiario: Number(e.target.value),
-                })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-              >
-                Guardar
-              </button>
+        {/* Pagination */}
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, productos.length)} de {productos.length}
+            </p>
+            <nav className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={clsx(
+                    "px-2.5 py-1 text-xs font-medium rounded transition-colors",
+                    currentPage === idx + 1
+                      ? "text-white"
+                      : "text-gray-500 hover:bg-gray-100"
+                  )}
+                  style={
+                    currentPage === idx + 1 
+                      ? { backgroundColor: colors.secondary.main }
+                      : undefined
+                  }
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* Create/Edit Modal */}
+      {showModal && selectedProducto && (
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium" style={{ color: colors.secondary.main }}>
+                  {selectedProducto.id ? "Editar Producto" : "Nuevo Producto"}
+                </h3>
+              </div>
+              
+              <div className="p-4 space-y-3">
+                {/* Form fields */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Empresa</label>
+                    <select
+                      value={selectedProducto.empresa_id}
+                      onChange={(e) => setSelectedProducto({ ...selectedProducto, empresa_id: Number(e.target.value) })}
+                      className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                      style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                    >
+                      {empresas.map((e) => (
+                        <option key={e.id} value={e.id}>{e.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <input
+                    type="text"
+                    placeholder="Producto"
+                    value={selectedProducto.producto}
+                    onChange={(e) =>
+                      setSelectedProducto({ ...selectedProducto, producto: e.target.value })
+                    }
+                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Precio"
+                    value={selectedProducto.precio}
+                    onChange={(e) =>
+                      setSelectedProducto({ ...selectedProducto, precio: e.target.value })
+                    }
+                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
+                  />
+                  <textarea
+                    placeholder="Descripción"
+                    value={selectedProducto.descripcion}
+                    onChange={(e) =>
+                      setSelectedProducto({ ...selectedProducto, descripcion: e.target.value })
+                    }
+                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Formato Certificado"
+                    value={selectedProducto.formato_certificado}
+                    onChange={(e) =>
+                      setSelectedProducto({ ...selectedProducto, formato_certificado: e.target.value })
+                    }
+                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
+                  />
+                  <div className="flex space-x-2 mb-2">
+                    <input
+                      type="number"
+                      placeholder="Edad mínima"
+                      value={selectedProducto.edad_minima}
+                      onChange={(e) =>
+                        setSelectedProducto({ ...selectedProducto, edad_minima: Number(e.target.value) })
+                      }
+                      className="w-1/2 border px-2 py-1 rounded text-sm"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Edad máxima"
+                      value={selectedProducto.edad_maxima}
+                      onChange={(e) =>
+                        setSelectedProducto({ ...selectedProducto, edad_maxima: Number(e.target.value) })
+                      }
+                      className="w-1/2 border px-2 py-1 rounded text-sm"
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    placeholder="Cantidad beneficiarios"
+                    value={selectedProducto.cantidad_beneficiario}
+                    onChange={(e) =>
+                      setSelectedProducto({
+                        ...selectedProducto,
+                        cantidad_beneficiario: Number(e.target.value),
+                      })
+                    }
+                    className="w-full border px-2 py-1 mb-2 rounded text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded"
+                  style={{ backgroundColor: colors.secondary.main }}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-            {/* Modal Eliminar */}
+      {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
-            <h3 className="text-sm font-semibold mb-4 text-red-600">
-              ¿Eliminar Producto?
-            </h3>
-            <p className="text-xs mb-4 text-gray-600">
-              Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-              >
-                Eliminar
-              </button>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-sm">
+              <div className="p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                      <FaTrash className="h-5 w-5 text-red-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Eliminar Producto</h3>
+                    <p className="mt-2 text-xs text-gray-500">
+                      ¿Está seguro que desea eliminar este producto? Esta acción no se puede deshacer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded bg-red-600 hover:bg-red-700"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>
