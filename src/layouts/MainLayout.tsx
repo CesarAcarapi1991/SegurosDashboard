@@ -74,6 +74,17 @@ const MainLayout: React.FC = () => {
       ],
     },
     {
+      name: 'Reportes',
+      icon: () => <FaClipboardList size={20} className="text-primary-light" />,
+      submenu: [
+        { 
+          name: 'Seguros Colectivos', 
+          path: '/reportes/reporte_operaciones', 
+          icon: () => <FaShieldAlt size={18} className="text-primary-light" />
+        },
+      ],
+    },
+    {
       name: 'Configuración',
       icon: () => <FaCog size={20} className="text-primary-light" />,
       submenu: [

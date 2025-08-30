@@ -13,6 +13,7 @@ import Preguntas from '../pages/Preguntas';
 import Certificados from '../pages/Certificados';
 import Seguros from '../pages/Seguros';
 import Operaciones from '../pages/Operaciones';
+import ReporteOperaciones from '../components/ReporteOperaciones';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -29,6 +30,9 @@ const AppRoutes: React.FC = () => {
           
           <Route path="seguros" element={<Seguros />} />
           <Route path="/seguros/operaciones" element={<Operaciones />} />
+
+          <Route path="reportes" element={<Seguros />} />
+          <Route path="/reportes/reporte_operaciones" element={<ReporteOperaciones />} />
 
           <Route path="configuracion" element={<Configuracion />} />
           <Route path="/configuracion/empresas" element={<Empresas />} />
