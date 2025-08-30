@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 import OperacionCliente from "./OperacionCliente";
 import OperacionProducto from "./OperacionProducto";
-import { HiSearch } from 'react-icons/hi';
+import { HiSearch, HiPencil, HiPlus } from "react-icons/hi";
 
 interface OperacionPayload {
   nro_poliza?: string;
@@ -130,8 +130,8 @@ const Operaciones: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-200/50 p-4">
+      {/* Header Section */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-        {/* Header content */}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-xl font-semibold text-gray-800">Operaciones</h1>
@@ -140,12 +140,10 @@ const Operaciones: React.FC = () => {
           <button
             onClick={() => openModal()}
             className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
-            style={{
-              backgroundColor: colors.secondary.main,
-              color: 'white',
-            }}
+            style={{ backgroundColor: colors.secondary.main, color: 'white' }}
           >
-            + Nueva Operación
+            <HiPlus className="h-4 w-4 mr-1.5" />
+            Nueva Operación
           </button>
         </div>
 
@@ -160,16 +158,14 @@ const Operaciones: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar operación..."
                 className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
-                style={{
-                  borderColor: colors.gray.light,
-                  '--tw-ring-color': colors.secondary.main,
-                } as React.CSSProperties}
+                style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
               />
             </div>
           </div>
         </div>
       </div>
 
+      {/* Table Section */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -184,15 +180,15 @@ const Operaciones: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {currentOperaciones.map((op, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{op.nro_poliza}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-xs text-gray-900">{op.nro_poliza}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
                     {op.primernombre} {op.primerapellido}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{op.id_seguro_producto}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 text-xs text-gray-600">{op.id_seguro_producto}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
                     <span className={clsx(
-                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                      "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
                       op.estado === 1 
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
@@ -200,37 +196,86 @@ const Operaciones: React.FC = () => {
                       {op.estado === 1 ? "Activo" : "Inactivo"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                    <button onClick={() => openModal(op)} className="text-blue-600 hover:text-blue-900">Editar</button>
-                    <button className="text-green-600 hover:text-green-900">Beneficiario</button>
-                    <button className="text-red-600 hover:text-red-900">Cancelar</button>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => openModal(op)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: colors.secondary.main,
+                          backgroundColor: colors.secondary.bg,
+                        }}
+                      >
+                        <HiPencil className="h-3 w-3 mr-1" />
+                        Editar
+                      </button>
+                      <button
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-green-600 bg-green-50 hover:bg-green-100 transition-colors"
+                      >
+                        Beneficiario
+                      </button>
+                      <button
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, operaciones.length)} de {operaciones.length}
+            </p>
+            <nav className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={clsx(
+                    "px-2.5 py-1 text-xs font-medium rounded transition-colors",
+                    currentPage === idx + 1
+                      ? "text-white"
+                      : "text-gray-500 hover:bg-gray-100"
+                  )}
+                  style={
+                    currentPage === idx + 1 
+                      ? { backgroundColor: colors.secondary.main }
+                      : undefined
+                  }
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
       </div>
 
-      {/* Modal con diseño mejorado */}
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
-              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-6xl">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium" style={{ color: colors.secondary.main }}>
                   {selectedOperacion?.nro_poliza ? "Editar Operación" : "Nueva Operación"}
                 </h3>
               </div>
               
-              <div className="bg-white px-6 py-4 space-y-6">
+              <div className="p-4 space-y-6">
                 <OperacionProducto onChange={(data) => setOperacionPayload((prev) => ({ ...prev, ...data }))} />
                 <OperacionCliente onChange={(data) => setOperacionPayload((prev) => ({ ...prev, ...data }))} />
               </div>
 
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
                 <button
                   onClick={() => setShowModal(false)}
                   className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
@@ -239,7 +284,8 @@ const Operaciones: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded"
+                  style={{ backgroundColor: colors.secondary.main }}
                 >
                   Guardar
                 </button>

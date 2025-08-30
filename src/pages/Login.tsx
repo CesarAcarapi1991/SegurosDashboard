@@ -4,6 +4,7 @@ import { loginUser } from '../api/auth';
 import { useAuthStore } from '../store/authStore';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import logo from '../assets/logo.png';
 
 const colors = {
   primary: {
@@ -74,7 +75,7 @@ const Login: React.FC = () => {
         <div className="relative z-10">
           <div className="text-center mb-8">
             <img
-              src="https://cdn.evaluar.com/jobboards/prod/wp-content/uploads/jobboards/sites/348/2021/09/22160452/Logo_Diaconi%CC%81a_IFD_5%403x.png"
+              src={logo}
               alt="Diaconía Logo"
               className="mx-auto h-20 mb-6"
             />

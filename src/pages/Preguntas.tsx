@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaPencilAlt, FaTrash } from "react-icons/fa";
-import { HiSearch } from "react-icons/hi";
+import { FaTrash } from "react-icons/fa";
+import { HiSearch, HiPencil, HiTrash, HiPlus } from "react-icons/hi";
 import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 
@@ -22,6 +22,26 @@ interface Pregunta {
 }
 
 const API_URL = process.env.REACT_APP_API_URL;
+
+const colors = {
+  primary: {
+    main: '#0097a6',
+    light: '#00adc0',
+    dark: '#007d8a',
+    bg: 'rgba(0, 151, 166, 0.1)',
+  },
+  secondary: {
+    main: '#09589f',
+    light: '#0a69bd',
+    dark: '#074781',
+    bg: 'rgba(9, 88, 159, 0.1)',
+  },
+  gray: {
+    main: '#374151',
+    light: '#e5e7eb',
+    bg: 'rgba(55, 65, 81, 0.05)',
+  }
+};
 
 const Preguntas: React.FC = () => {
   const { user } = useAuthStore();
@@ -127,178 +147,236 @@ const Preguntas: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-200/50 p-4">
-      {/* Header */}
-      <div className="flex justify-between mb-4 items-center">
-        <h2 className="text-sm font-semibold text-gray-800">Preguntas</h2>
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-3 py-1 rounded text-xs shadow hover:bg-blue-700 transition"
-        >
-          + Nueva Pregunta
-        </button>
-      </div>
+      {/* Header Section */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">Preguntas de los Cuestionarios</h1>
+            <p className="text-xs text-gray-500">Gestión de preguntas</p>
+          </div>
+          <button
+            onClick={() => openModal()}
+            className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
+            style={{ backgroundColor: colors.secondary.main, color: 'white' }}
+          >
+            <HiPlus className="h-4 w-4 mr-1.5" />
+            Nueva Pregunta
+          </button>
+        </div>
 
-      {/* Barra de búsqueda */}
-      <div className="mb-4">
-        <div className="relative">
-          <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-          <input
-            type="text"
-            placeholder="Buscar por título de pregunta"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border px-10 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
+        {/* Search Bar */}
+        <div className="flex">
+          <div className="w-full max-w-xs">
+            <div className="relative">
+              <HiSearch className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar pregunta..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
+                style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse border border-gray-200 text-sm shadow-lg rounded-md overflow-hidden">
-          <thead>
-            <tr className="bg-[#09589f]">
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Bloque</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Pregunta</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Título</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Tipo</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPreguntas.map((preg, idx) => (
-              <tr
-                key={preg.id}
-                className={clsx(
-                  idx % 2 === 0 ? "bg-gray-50" : "bg-white",
-                  "hover:bg-gray-100 transition-colors"
-                )}
-              >
-                <td className="border px-2 py-2 text-center">{preg.id}</td>
-                <td className="border px-2 py-2">
-                  {bloques.find((b) => b.id === preg.id_bloque)?.titulo_bloque}
-                </td>
-                <td className="border px-2 py-2">{preg.nro_pregunta}</td>
-                <td className="border px-2 py-2">{preg.titulo_pregunta}</td>
-                <td className="border px-2 py-2">{preg.tipo}</td>
-                <td className="border px-2 py-2">{preg.estado === 1 ? "Activo" : "Inactivo"}</td>
-                <td className="border px-2 py-2 flex justify-center space-x-2">
-                  <button
-                    onClick={() => openModal(preg)}
-                    className="bg-yellow-200 text-yellow-800 p-1 rounded hover:bg-yellow-300 shadow-sm"
-                  >
-                    <FaPencilAlt size={14} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(preg)}
-                    className="bg-red-200 text-red-800 p-1 rounded hover:bg-red-300 shadow-sm"
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </td>
+      {/* Table Section */}
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr className="bg-[#09589f]">
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">ID</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Bloque</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Pregunta</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Título</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Tipo</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {currentPreguntas.map((preg) => (
+                <tr key={preg.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-xs text-gray-900">{preg.id}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    {bloques.find((b) => b.id === preg.id_bloque)?.titulo_bloque}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{preg.nro_pregunta}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{preg.titulo_pregunta}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{preg.tipo}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      preg.estado === 1 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {preg.estado === 1 ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => openModal(preg)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: colors.secondary.main,
+                          backgroundColor: colors.secondary.bg,
+                        }}
+                      >
+                        <HiPencil className="h-3 w-3 mr-1" />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(preg)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                      >
+                        <HiTrash className="h-3 w-3 mr-1" />
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      {/* Paginación */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {Array.from({ length: totalPages }, (_, idx) => (
-          <button
-            key={idx + 1}
-            onClick={() => setCurrentPage(idx + 1)}
-            className={clsx(
-              "px-2 py-1 rounded text-xs border shadow-sm",
-              currentPage === idx + 1
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 hover:bg-gray-100"
-            )}
-          >
-            {idx + 1}
-          </button>
-        ))}
+        {/* Pagination */}
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, preguntas.length)} de {preguntas.length}
+            </p>
+            <nav className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={clsx(
+                    "px-2.5 py-1 text-xs font-medium rounded transition-colors",
+                    currentPage === idx + 1
+                      ? "text-white"
+                      : "text-gray-500 hover:bg-gray-100"
+                  )}
+                  style={
+                    currentPage === idx + 1 
+                      ? { backgroundColor: colors.secondary.main }
+                      : undefined
+                  }
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
       </div>
 
       {/* Modal Crear/Editar */}
       {showModal && selectedPregunta && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-sm font-semibold mb-4">
-              {selectedPregunta.id ? "Editar Pregunta" : "Nueva Pregunta"}
-            </h3>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium" style={{ color: colors.secondary.main }}>
+                  {selectedPregunta.id ? "Editar Pregunta" : "Nueva Pregunta"}
+                </h3>
+              </div>
+              
+              <div className="p-4 space-y-3">
+                {/* Form fields */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Bloque</label>
+                  <select
+                    value={selectedPregunta.id_bloque}
+                    onChange={(e) =>
+                      setSelectedPregunta({ ...selectedPregunta, id_bloque: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  >
+                    {bloques.map((b) => (
+                      <option key={b.id} value={b.id}>{b.titulo_bloque}</option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Select de bloque */}
-            <label className="text-xs font-medium">Bloque</label>
-            <select
-              value={selectedPregunta.id_bloque}
-              onChange={(e) =>
-                setSelectedPregunta({ ...selectedPregunta, id_bloque: Number(e.target.value) })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            >
-              {bloques.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.titulo_bloque}
-                </option>
-              ))}
-            </select>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Nro Pregunta</label>
+                  <input
+                    type="number"
+                    value={selectedPregunta.nro_pregunta}
+                    onChange={(e) =>
+                      setSelectedPregunta({ ...selectedPregunta, nro_pregunta: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
 
-            <input
-              type="number"
-              placeholder="Nro Pregunta"
-              value={selectedPregunta.nro_pregunta}
-              onChange={(e) =>
-                setSelectedPregunta({ ...selectedPregunta, nro_pregunta: Number(e.target.value) })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Título Pregunta</label>
+                  <input
+                    type="text"
+                    value={selectedPregunta.titulo_pregunta}
+                    onChange={(e) =>
+                      setSelectedPregunta({ ...selectedPregunta, titulo_pregunta: e.target.value })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
 
-            <input
-              type="text"
-              placeholder="Título Pregunta"
-              value={selectedPregunta.titulo_pregunta}
-              onChange={(e) =>
-                setSelectedPregunta({ ...selectedPregunta, titulo_pregunta: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
+                  <select
+                    value={selectedPregunta.tipo}
+                    onChange={(e) =>
+                      setSelectedPregunta({ ...selectedPregunta, tipo: e.target.value })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  >
+                    <option value="abierta">Abierta</option>
+                    <option value="cerrada">Cerrada</option>
+                  </select>
+                </div>
 
-            <input
-              type="text"
-              placeholder="Tipo"
-              value={selectedPregunta.tipo}
-              onChange={(e) =>
-                setSelectedPregunta({ ...selectedPregunta, tipo: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Estado</label>
+                  <select
+                    value={selectedPregunta.estado}
+                    onChange={(e) =>
+                      setSelectedPregunta({ ...selectedPregunta, estado: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  >
+                    <option value={1}>Activo</option>
+                    <option value={0}>Inactivo</option>
+                  </select>
+                </div>
+              </div>
 
-            <select
-              value={selectedPregunta.estado}
-              onChange={(e) =>
-                setSelectedPregunta({ ...selectedPregunta, estado: Number(e.target.value) })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            >
-              <option value={1}>Activo</option>
-              <option value={0}>Inactivo</option>
-            </select>
-
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-              >
-                Guardar
-              </button>
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded"
+                  style={{ backgroundColor: colors.secondary.main }}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -306,23 +384,40 @@ const Preguntas: React.FC = () => {
 
       {/* Modal Eliminar */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
-            <h3 className="text-sm font-semibold mb-4 text-red-600">¿Eliminar Pregunta?</h3>
-            <p className="text-xs mb-4 text-gray-600">Esta acción no se puede deshacer.</p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-              >
-                Eliminar
-              </button>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                      <FaTrash className="h-5 w-5 text-red-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Eliminar Pregunta</h3>
+                    <p className="mt-2 text-xs text-gray-500">
+                      ¿Está seguro que desea eliminar esta pregunta? Esta acción no se puede deshacer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded bg-red-600 hover:bg-red-700"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>

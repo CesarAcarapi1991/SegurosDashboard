@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPencilAlt, FaTrash } from "react-icons/fa";
-import { HiSearch } from 'react-icons/hi';
+import { HiSearch, HiPencil, HiTrash, HiPlus } from "react-icons/hi";
 import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
 
@@ -148,6 +148,7 @@ const Certificados: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-200/50 p-4">
+      {/* Header Section */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -157,12 +158,10 @@ const Certificados: React.FC = () => {
           <button
             onClick={() => openModal()}
             className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-200"
-            style={{
-              backgroundColor: colors.secondary.main,
-              color: 'white',
-            }}
+            style={{ backgroundColor: colors.secondary.main, color: 'white' }}
           >
-            + Nuevo Certificado
+            <HiPlus className="h-4 w-4 mr-1.5" />
+            Nuevo Certificado
           </button>
         </div>
 
@@ -177,206 +176,249 @@ const Certificados: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar certificado..."
                 className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md focus:ring-1 focus:ring-opacity-50"
-                style={{
-                  borderColor: colors.gray.light,
-                  '--tw-ring-color': colors.secondary.main,
-                } as React.CSSProperties}
+                style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
               />
             </div>
           </div>
         </div>
       </div>
 
+      {/* Table Section */}
       <div className="bg-white rounded-lg shadow-sm">
-        <table>
-          <thead>
-            <tr className="bg-[#09589f]">
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                ID
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                Producto
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                Código
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                Descripción
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                Fecha Emisión
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                Fecha Vencimiento
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
-                Estado
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentCertificados.map((cert, idx) => (
-              <tr
-                key={cert.id}
-                className={clsx(
-                  idx % 2 === 0 ? "bg-gray-50" : "bg-white",
-                  "hover:bg-gray-100 transition-colors"
-                )}
-              >
-                <td className="border px-2 py-2 text-center">{cert.id}</td>
-                <td className="border px-2 py-2">
-                  {productos.find(p => p.id === cert.id_producto)?.producto}
-                </td>
-                <td className="border px-2 py-2">{cert.codigo}</td>
-                <td className="border px-2 py-2">{cert.descripcion}</td>
-                <td className="border px-2 py-2">
-                  {cert.fecha_emision ? cert.fecha_emision.split("T")[0] : ""}
-                </td>
-                <td className="border px-2 py-2">
-                  {cert.fecha_vencimiento ? cert.fecha_vencimiento.split("T")[0] : ""}
-                </td>
-                <td className="border px-2 py-2">{cert.estado === 1 ? "Activo" : "Inactivo"}</td>
-                <td className="border px-2 py-2 flex justify-center space-x-2">
-                  <button
-                    onClick={() => openModal(cert)}
-                    className="bg-yellow-200 text-yellow-800 p-1 rounded hover:bg-yellow-300 shadow-sm"
-                  >
-                    <FaPencilAlt size={14} />
-                  </button>
-                  <button
-                    onClick={() => confirmDelete(cert)}
-                    className="bg-red-200 text-red-800 p-1 rounded hover:bg-red-300 shadow-sm"
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr className="bg-[#09589f]">
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  ID
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Producto
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Código
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Descripción
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Fecha Emisión
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Fecha Vencimiento
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">
+                  Estado
+                </th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {currentCertificados.map((cert) => (
+                <tr key={cert.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2 text-xs text-gray-900">{cert.id}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    {productos.find(p => p.id === cert.id_producto)?.producto}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{cert.codigo}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">{cert.descripcion}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    {cert.fecha_emision ? cert.fecha_emision.split("T")[0] : ""}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    {cert.fecha_vencimiento ? cert.fecha_vencimiento.split("T")[0] : ""}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      cert.estado === 1 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {cert.estado === 1 ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex justify-center space-x-2">
+                      <button
+                        onClick={() => openModal(cert)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          color: colors.secondary.main,
+                          backgroundColor: colors.secondary.bg,
+                        }}
+                      >
+                        <HiPencil className="h-3 w-3 mr-1" />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(cert)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                      >
+                        <HiTrash className="h-3 w-3 mr-1" />
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      {/* Paginación */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {Array.from({ length: totalPages }, (_, idx) => (
-          <button
-            key={idx + 1}
-            onClick={() => setCurrentPage(idx + 1)}
-            className={clsx(
-              "px-2 py-1 rounded text-xs border shadow-sm",
-              currentPage === idx + 1
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 hover:bg-gray-100"
-            )}
-          >
-            {idx + 1}
-          </button>
-        ))}
+        {/* Pagination */}
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              Mostrando {indexOfFirst + 1} a {Math.min(indexOfLast, certificados.length)} de {certificados.length}
+            </p>
+            <nav className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={clsx(
+                    "px-2 py-1 rounded text-xs border shadow-sm",
+                    currentPage === idx + 1
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
       </div>
 
       {/* Modal Crear/Editar */}
       {showModal && selectedCertificado && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-sm font-semibold mb-4">
-              {selectedCertificado.id ? "Editar Certificado" : "Nuevo Certificado"}
-            </h3>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium" style={{ color: colors.secondary.main }}>
+                  {selectedCertificado.id ? "Editar Certificado" : "Nuevo Certificado"}
+                </h3>
+              </div>
+              
+              <div className="p-4 space-y-3">
+                {/* Form fields */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Producto</label>
+                  <select
+                    value={selectedCertificado.id_producto}
+                    onChange={(e) => setSelectedCertificado({
+                      ...selectedCertificado,
+                      id_producto: Number(e.target.value),
+                    })}
+                    className="w-full px-3 py-1.5 text-xs rounded-md border focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  >
+                    {productos.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.producto}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Select de Producto */}
-            <label className="text-xs font-medium">Producto</label>
-            <select
-              value={selectedCertificado.id_producto}
-              onChange={(e) =>
-                setSelectedCertificado({
-                  ...selectedCertificado,
-                  id_producto: Number(e.target.value),
-                })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            >
-              {productos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.producto}
-                </option>
-              ))}
-            </select>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Código</label>
+                  <input
+                    type="text"
+                    placeholder="Código"
+                    value={selectedCertificado.codigo}
+                    onChange={(e) =>
+                      setSelectedCertificado({ ...selectedCertificado, codigo: e.target.value })
+                    }
+                    className="w-full border px-3 py-1.5 text-xs rounded-md focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
 
-            <input
-              type="text"
-              placeholder="Código"
-              value={selectedCertificado.codigo}
-              onChange={(e) =>
-                setSelectedCertificado({ ...selectedCertificado, codigo: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Descripción</label>
+                  <textarea
+                    placeholder="Descripción"
+                    value={selectedCertificado.descripcion}
+                    onChange={(e) =>
+                      setSelectedCertificado({ ...selectedCertificado, descripcion: e.target.value })
+                    }
+                    className="w-full border px-3 py-1.5 text-xs rounded-md focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
 
-            <textarea
-              placeholder="Descripción"
-              value={selectedCertificado.descripcion}
-              onChange={(e) =>
-                setSelectedCertificado({ ...selectedCertificado, descripcion: e.target.value })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Fecha Emisión</label>
+                  <input
+                    type="date"
+                    value={selectedCertificado.fecha_emision?.split("T")[0] || ""}
+                    onChange={(e) =>
+                      setSelectedCertificado({
+                        ...selectedCertificado,
+                        fecha_emision: e.target.value,
+                      })
+                    }
+                    className="w-full border px-3 py-1.5 text-xs rounded-md focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
 
-            {/* Fechas solo con día, mes y año */}
-            <label className="text-xs font-medium">Fecha Emisión</label>
-            <input
-              type="date"
-              value={selectedCertificado.fecha_emision?.split("T")[0] || ""}
-              onChange={(e) =>
-                setSelectedCertificado({
-                  ...selectedCertificado,
-                  fecha_emision: e.target.value,
-                })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Fecha Vencimiento</label>
+                  <input
+                    type="date"
+                    value={selectedCertificado.fecha_vencimiento?.split("T")[0] || ""}
+                    onChange={(e) =>
+                      setSelectedCertificado({
+                        ...selectedCertificado,
+                        fecha_vencimiento: e.target.value,
+                      })
+                    }
+                    className="w-full border px-3 py-1.5 text-xs rounded-md focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  />
+                </div>
 
-                        <label className="text-xs font-medium">Fecha Vencimiento</label>
-            <input
-              type="date"
-              value={selectedCertificado.fecha_vencimiento?.split("T")[0] || ""}
-              onChange={(e) =>
-                setSelectedCertificado({
-                  ...selectedCertificado,
-                  fecha_vencimiento: e.target.value,
-                })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            />
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Estado</label>
+                  <select
+                    value={selectedCertificado.estado}
+                    onChange={(e) =>
+                      setSelectedCertificado({
+                        ...selectedCertificado,
+                        estado: Number(e.target.value),
+                      })
+                    }
+                    className="w-full border px-3 py-1.5 text-xs rounded-md focus:ring-1"
+                    style={{ '--tw-ring-color': colors.secondary.main } as React.CSSProperties}
+                  >
+                    <option value={1}>Activo</option>
+                    <option value={0}>Inactivo</option>
+                  </select>
+                </div>
+              </div>
 
-            <select
-              value={selectedCertificado.estado}
-              onChange={(e) =>
-                setSelectedCertificado({
-                  ...selectedCertificado,
-                  estado: Number(e.target.value),
-                })
-              }
-              className="w-full border px-2 py-1 mb-2 rounded text-sm"
-            >
-              <option value={1}>Activo</option>
-              <option value={0}>Inactivo</option>
-            </select>
-
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-              >
-                Guardar
-              </button>
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded"
+                  style={{ backgroundColor: colors.secondary.main }}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -384,27 +426,40 @@ const Certificados: React.FC = () => {
 
       {/* Modal Eliminar */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-80 text-center">
-            <h3 className="text-sm font-semibold mb-4 text-red-600">
-              ¿Eliminar Certificado?
-            </h3>
-            <p className="text-xs mb-4 text-gray-600">
-              Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-              >
-                Eliminar
-              </button>
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+              <div className="p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                      <FaTrash className="h-5 w-5 text-red-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Eliminar Certificado</h3>
+                    <p className="mt-2 text-xs text-gray-500">
+                      ¿Está seguro que desea eliminar este certificado? Esta acción no se puede deshacer.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded bg-red-600 hover:bg-red-700"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>
