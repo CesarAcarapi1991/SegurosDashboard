@@ -522,7 +522,7 @@ export default function Cobro() {
         const cobro = await res.json();
 
         toast.info("Se generó el comprobante", {
-          position: "top-right",
+          position: "bottom-right",
           autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: true,
@@ -548,7 +548,7 @@ export default function Cobro() {
 
       if (!res.data) {
         toast.error("Solicitud de Seguro, no existe", {
-          position: "top-right",
+          position: "bottom-right",
           autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: true,
@@ -560,22 +560,22 @@ export default function Cobro() {
         return;
       }
 
-        // Ajusta según la estructura de tu API
-        setCliente({
-          documento: res.data.nrodocumento,
-          nombre: `${res.data.primernombre || ""} ${res.data.segundonombre || ""} ${res.data.primerapellido || ""} ${res.data.segundoapellido || ""}`.trim(),
-          fecha_creacion: res.data.fecha_creacion,
-          concepto: res.data.producto,
-          cantidad: res.data.cantidad,
-          precio: res.data.precio,
-          estado: res.data.estado,
-          id_operacion: res.data.id,
-        });
+      // Ajusta según la estructura de tu API
+      setCliente({
+        documento: res.data.nrodocumento,
+        nombre: `${res.data.primernombre || ""} ${res.data.segundonombre || ""} ${res.data.primerapellido || ""} ${res.data.segundoapellido || ""}`.trim(),
+        fecha_creacion: res.data.fecha_creacion,
+        concepto: res.data.producto,
+        cantidad: res.data.cantidad,
+        precio: res.data.precio,
+        estado: res.data.estado,
+        id_operacion: res.data.id,
+      });
 
-        setItems([
-          { id: 1, nombre: res.data.producto, cantidad: res.data.cantida, precio: res.data.precio },
-        ]);
-        setLoading(true);
+      setItems([
+        { id: 1, nombre: res.data.producto, cantidad: res.data.cantida, precio: res.data.precio },
+      ]);
+      setLoading(true);
 
     } catch (err) {
       console.error("Error al buscar cliente:", err);
@@ -589,7 +589,7 @@ export default function Cobro() {
     if (!cliente.documento) {
 
       toast.error("Selecciona un cliente primero", {
-        position: "top-right",
+        position: "bottom-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
@@ -615,7 +615,7 @@ export default function Cobro() {
       await axios.post(`${API_URL}/cobro`, payload);
       await handleBuscarCliente();
       toast.success("Pago registrado con éxito", {
-        position: "top-right",
+        position: "bottom-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
@@ -731,23 +731,23 @@ export default function Cobro() {
         <div className="xl:col-span-2 space-y-4">
           {/* 🔹 Buscador */}
           <div className="bg-white rounded-lg shadow-sm p-2 mb-3">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-              <div className="flex items-center w-full lg:w-auto gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 <label className="text-[11px] text-gray-500 whitespace-nowrap">
-                  Busqueda por Código de Solicitud de Seguro:
+                  Búsqueda por Código de Solicitud de Seguro:
                 </label>
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onBlur={handleBuscarCliente}
-                  placeholder="Codigo de Solicitud de Seguro"
-                  className="flex-1 lg:w-60 px-2 py-1 text-xs border rounded focus:ring-1 focus:outline-none"
+                  placeholder="Código de Solicitud de Seguro"
+                  className="flex-1 w-full sm:w-60 px-2 py-1 text-xs border rounded focus:ring-1 focus:outline-none"
                 />
                 <button
                   onClick={handleBuscarCliente}
                   disabled={loading}
-                  className="px-3 py-1 text-xs text-white rounded flex items-center gap-1 disabled:opacity-50"
+                  className="w-full sm:w-auto px-3 py-1 text-xs text-white rounded flex items-center justify-center gap-1 disabled:opacity-50"
                   style={{ backgroundColor: colors.secondary.main }}
                 >
                   {loading ? "Buscando..." : "Buscar"}
@@ -755,6 +755,7 @@ export default function Cobro() {
               </div>
             </div>
           </div>
+
 
           {/* Cliente */}
           <div className="bg-white rounded-lg shadow-sm p-4">

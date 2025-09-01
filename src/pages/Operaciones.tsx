@@ -343,6 +343,7 @@ interface Producto {
   cantidad_beneficiario: number;
   estado: number;
   usuario_creacion: string;
+  nombre_empresa: string;
 }
 
 interface Cliente {
@@ -363,6 +364,10 @@ interface Cliente {
   fechavencimiento?: string;
   numerocelular?: number;
   correoelectronico?: string;
+  nombre_completo: string;
+  nro_documento_desc: string;
+  estado_civil_desc?: string;
+  tipo_documento_desc?: string;
 }
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -410,7 +415,9 @@ const Operaciones: React.FC = () => {
       setSelectedOperacion(prev => ({
         ...prev,
         id_seguro_producto: producto?.id,
-        producto: producto?.descripcion,
+        producto: producto?.producto,
+        precio: producto?.precio,
+        empresa: producto?.nombre_empresa,
       }));
 
     } else {
@@ -419,6 +426,8 @@ const Operaciones: React.FC = () => {
         ...prev,
         id_seguro_producto: undefined,
         producto: undefined,
+        precio: undefined,
+        empresa: undefined,
       }));
     }
   };
@@ -442,10 +451,11 @@ const Operaciones: React.FC = () => {
       setSelectedOperacion(prev => ({
         ...prev,
         id_cliente: cliente?.codigocliente,
-        nombre_completo: `${cliente?.primernombre} ${cliente?.primerapellido}`,
-        nro_documento: cliente?.nrodocumento?.toString(),
+        nombre_completo: cliente?.nombre_completo,
+        nro_documento: cliente?.nro_documento_desc,
+        tipo_documento: cliente?.tipo_documento_desc,
         fechanacimiento: cliente?.fechanacimiento,
-        estadocivil: cliente?.estadocivil,
+        estado_civil: cliente?.estado_civil_desc,
       }));
 
     } else {
@@ -691,6 +701,8 @@ const Operaciones: React.FC = () => {
               <option value="0">Todos</option>
               <option value="1">Generado</option>
               <option value="2">Vigente</option>
+              <option value="3">Cancelado</option>
+              <option value="4">Vencido</option>
             </select>
           </div>
 
@@ -729,7 +741,7 @@ const Operaciones: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr className="bg-[#09589f]">
-                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">#</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Solicitud</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Póliza</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Cliente</th>
@@ -964,9 +976,11 @@ const Operaciones: React.FC = () => {
 
 
 
-                {selectedOperacion?.id_seguro_producto ?
+                {/* {selectedOperacion?.id_seguro_producto ?
                   "" :
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+                  
+                } */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
                     <div className="max-w-3xl">
                       <h2 className="text-2xl font-bold text-gray-900 mb-1">PRODUCTO</h2>
                       <p className="text-sm text-gray-500">Complete la información del cliente para continuar</p>
@@ -995,7 +1009,7 @@ const Operaciones: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                }
+
 
 
                 {selectedOperacion?.id_seguro_producto && (
