@@ -14,6 +14,7 @@ import Certificados from '../pages/Certificados';
 import Seguros from '../pages/Seguros';
 import Operaciones from '../pages/Operaciones';
 import ReporteOperaciones from '../components/ReporteOperaciones';
+import Cobro from '../pages/Cobro';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -25,11 +26,14 @@ const AppRoutes: React.FC = () => {
       <Route element={<PrivateRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="perfil" element={<Perfil />} />
+          {/* <Route path="dashboard" element={<Dashboard />} />
+          <Route path="perfil" element={<Perfil />} /> */}
           
           <Route path="seguros" element={<Seguros />} />
           <Route path="/seguros/operaciones" element={<Operaciones />} />
+
+          <Route path="cobro" element={<Seguros />} />
+          <Route path="/cobro/cobro_seguro" element={<Cobro />} />
 
           <Route path="reportes" element={<Seguros />} />
           <Route path="/reportes/reporte_operaciones" element={<ReporteOperaciones />} />

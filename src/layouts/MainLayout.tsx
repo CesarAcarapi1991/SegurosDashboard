@@ -57,11 +57,11 @@ const MainLayout: React.FC = () => {
       path: '/dashboard', 
       icon: () => <FaChartLine size={20} className="text-primary-light" />
     },
-    { 
-      name: 'Perfil', 
-      path: '/perfil', 
-      icon: () => <FaUserShield size={20} className="text-primary-light" />
-    },
+    // { 
+    //   name: 'Perfil', 
+    //   path: '/perfil', 
+    //   icon: () => <FaUserShield size={20} className="text-primary-light" />
+    // },
     {
       name: 'Modulo de Seguros',
       icon: () => <FaClipboardList size={20} className="text-primary-light" />,
@@ -69,6 +69,17 @@ const MainLayout: React.FC = () => {
         { 
           name: 'Seguros Colectivos', 
           path: '/seguros/operaciones', 
+          icon: () => <FaShieldAlt size={18} className="text-primary-light" />
+        },
+      ],
+    },
+    {
+      name: 'Modulo de Caja',
+      icon: () => <FaClipboardList size={20} className="text-primary-light" />,
+      submenu: [
+        { 
+          name: 'Cobro de Seguro', 
+          path: '/cobro/cobro_seguro', 
           icon: () => <FaShieldAlt size={18} className="text-primary-light" />
         },
       ],
@@ -88,8 +99,8 @@ const MainLayout: React.FC = () => {
       name: 'Configuración',
       icon: () => <FaCog size={20} className="text-primary-light" />,
       submenu: [
-        { name: 'Usuarios', path: '/configuracion/usuarios', icon: () => <FaUser size={18} /> },
-        { name: 'Roles', path: '/configuracion/roles', icon: () => <FaUserShield size={18} /> },
+        // { name: 'Usuarios', path: '/configuracion/usuarios', icon: () => <FaUser size={18} /> },
+        // { name: 'Roles', path: '/configuracion/roles', icon: () => <FaUserShield size={18} /> },
         { name: 'Empresas Aseguradoras', path: '/configuracion/empresas', icon: () => <FaBuilding size={18} /> },
         { name: 'Productos Colectivos', path: '/configuracion/productos', icon: () => <FaFileContract size={18} /> },
         { name: 'Cuestionario Producto', path: '/configuracion/bloques', icon: () => <FaClipboardList size={18} /> },

@@ -269,7 +269,7 @@
 //                   {selectedOperacion?.nro_poliza ? "Editar Operación" : "Nueva Operación"}
 //                 </h3>
 //               </div>
-              
+
 //               <div className="p-4 space-y-6">
 //                 <OperacionProducto onChange={(data) => setOperacionPayload((prev) => ({ ...prev, ...data }))} />
 //                 <OperacionCliente onChange={(data) => setOperacionPayload((prev) => ({ ...prev, ...data }))} />
@@ -301,50 +301,68 @@
 // export default Operaciones;
 
 import React, { useState, useEffect } from "react";
+import Select, { SingleValue } from "react-select";
 import axios from "axios";
 import clsx from "clsx";
 import { useAuthStore } from "../store/authStore";
-import OperacionCliente from "./OperacionCliente";
-import OperacionProducto from "./OperacionProducto";
 import { HiSearch, HiPencil, HiPlus } from "react-icons/hi";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { Divider } from "@mui/material";
 
 interface OperacionPayload {
-  // nro_poliza?: string;
-  // id_cliente?: number | null;
-  // id_seguro_producto?: number | null;
-  // id_certificado?: number | null;
-  // primernombre?: string;
-  // segundonombre?: string;
-  // primerapellido?: string;
-  // segundoapellido?: string;
-  // apellidocasada?: string;
-  // tipodocumento?: number;
-  // nrodocumento?: number;
-  // complemento?: string;
-  // extension?: number;
-  // nacionalidad?: number;
-  // ocupacion?: string;
-  // fechanacimiento?: string;
-  // estadocivil?: number;
-  // fechavencimiento?: string;
-  // numerocelular?: number;
-  // peso?: string;
-  // estatura?: string;
-  // edad?: string;
-  // estado?: number;
-  // usuario_creacion?: string;
-
   id?: number;
   nro_poliza?: string;
   id_cliente?: number;
   nombre_completo?: string;
+  tipo_documento?: string;
   nro_documento?: string;
   fechanacimiento?: string;
+  fecha_creacion?: string;
+  fechavigencia?: string;
+  estado_civil?: string;
   id_seguro_producto?: number;
-  estado?: number;
+  estado?: number|string;
   producto?: string;
+  precio?: string;
+  empresa?: string;
+  usuario_creacion?: string;
+  usuario_modificacion?: string;
+  estado_operacion?: number;
+}
+
+interface Producto {
+  id: number;
+  empresa_id: number;
+  producto: string;
+  precio: string;
+  descripcion: string;
+  formato_certificado: string;
+  edad_minima: number;
+  edad_maxima: number;
+  cantidad_beneficiario: number;
+  estado: number;
+  usuario_creacion: string;
+}
+
+interface Cliente {
+  codigocliente: number;
+  primernombre: string;
+  segundonombre?: string;
+  primerapellido: string;
+  segundoapellido?: string;
+  apellidocasada?: string;
+  tipodocumento: number;
+  nrodocumento: number;
+  complemento?: string;
+  extension?: number;
+  nacionalidad?: number;
+  ocupacion?: string;
+  fechanacimiento: string;
+  estadocivil?: number;
+  fechavencimiento?: string;
+  numerocelular?: number;
+  correoelectronico?: string;
 }
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -373,10 +391,130 @@ const Operaciones: React.FC = () => {
   const { user } = useAuthStore();
 
   const [operaciones, setOperaciones] = useState<OperacionPayload[]>([]);
+
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
+
+  const productoOptions = productos.map(c => ({
+    value: c.id,
+    label: `${c.producto}`,
+  }));
+  const handleSelectProducto = (
+    option: SingleValue<{ value: number; label: string }>
+  ) => {
+    if (option) {
+      const producto = productos.find(c => c.id === option.value) || null;
+      setSelectedProducto(producto);
+
+      // Aquí actualizamos la operación con la info del cliente
+      setSelectedOperacion(prev => ({
+        ...prev,
+        id_seguro_producto: producto?.id,
+        producto: producto?.descripcion,
+      }));
+
+    } else {
+      setSelectedProducto(null);
+      setSelectedOperacion(prev => ({
+        ...prev,
+        id_seguro_producto: undefined,
+        producto: undefined,
+      }));
+    }
+  };
+
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+
+  const clienteOptions = clientes.map(c => ({
+    value: c.codigocliente,
+    label: `${c.nrodocumento} - ${c.primernombre} ${c.primerapellido}`,
+  }));
+
+  const handleSelectCliente = (
+    option: SingleValue<{ value: number; label: string }>
+  ) => {
+    if (option) {
+      const cliente = clientes.find(c => c.codigocliente === option.value) || null;
+      setSelectedCliente(cliente);
+
+      // Aquí actualizamos la operación con la info del cliente
+      setSelectedOperacion(prev => ({
+        ...prev,
+        id_cliente: cliente?.codigocliente,
+        nombre_completo: `${cliente?.primernombre} ${cliente?.primerapellido}`,
+        nro_documento: cliente?.nrodocumento?.toString(),
+        fechanacimiento: cliente?.fechanacimiento,
+        estadocivil: cliente?.estadocivil,
+      }));
+
+    } else {
+      setSelectedCliente(null);
+      setSelectedOperacion(prev => ({
+        ...prev,
+        id_cliente: undefined,
+        nombre_completo: undefined,
+        nro_documento: undefined,
+        fechanacimiento: undefined,
+        estadocivil: undefined,
+      }));
+    }
+  };
+
+  //#region beneficiario
+  const [showBeneficiarioModal, setShowBeneficiarioModal] = useState(false);
+  const [beneficiarios, setBeneficiarios] = useState<any[]>([]);
+  const [operacionActual, setOperacionActual] = useState<OperacionPayload | null>(null);
+
+  const openBeneficiarioModal = (operacion: OperacionPayload) => {
+    setOperacionActual(operacion);
+    setShowBeneficiarioModal(true);
+
+    // opcional: traer beneficiarios ya guardados en BD
+    //fetchBeneficiarios(operacion.id_seguro_producto);
+  };
+
+  const fetchBeneficiarios = async (idProducto?: number) => {
+    if (!idProducto) return;
+    try {
+      const res = await axios.get(`${API_URL}/beneficiarios/${idProducto}`);
+      setBeneficiarios(res.data);
+    } catch (error) {
+      console.error("Error al obtener beneficiarios:", error);
+    }
+  };
+
+  const handleAddBeneficiario = () => {
+    setBeneficiarios([...beneficiarios, { nombre: "", documento: "", parentesco: "" }]);
+  };
+
+  const handleChangeBeneficiario = (index: number, field: string, value: string) => {
+    const newBeneficiarios = [...beneficiarios];
+    newBeneficiarios[index][field] = value;
+    setBeneficiarios(newBeneficiarios);
+  };
+
+  const handleRemoveBeneficiario = (index: number) => {
+    setBeneficiarios(beneficiarios.filter((_, i) => i !== index));
+  };
+
+  const handleSaveBeneficiarios = async () => {
+    if (!operacionActual?.id_seguro_producto) return;
+    try {
+      await axios.post(`${API_URL}/beneficiarios/${operacionActual.id_seguro_producto}`, beneficiarios);
+      setShowBeneficiarioModal(false);
+    } catch (error) {
+      console.error("Error al guardar beneficiarios:", error);
+    }
+  };
+
+  //#endregion
+
+
   const [selectedOperacion, setSelectedOperacion] = useState<OperacionPayload | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const operacionesPerPage = 5;
+  const operacionesPerPage = 10;
 
   const [operacionPayload, setOperacionPayload] = useState<OperacionPayload>({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -392,12 +530,12 @@ const Operaciones: React.FC = () => {
   const [fechaDesde, setFechaDesde] = useState(formatDate(haceUnaSemana));
   const [fechaHasta, setFechaHasta] = useState(formatDate(hoy));
 
-  // const [fechaDesde, setFechaDesde] = useState("");
-  // const [fechaHasta, setFechaHasta] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("0");
 
   useEffect(() => {
     fetchOperaciones();
+    fetchClientes();
+    fetchProductos();
   }, []);
 
   const generarPDF = (op: OperacionPayload) => {
@@ -434,12 +572,29 @@ const Operaciones: React.FC = () => {
     }
   };
 
+  const fetchClientes = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/clientes`);
+      setClientes(res.data);
+    } catch (error) {
+      console.error("Error al obtener clientes:", error);
+    }
+  };
+  const fetchProductos = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/productos`);
+      setProductos(res.data);
+    } catch (error) {
+      console.error("Error al obtener productos:", error);
+    }
+  };
+
   const openModal = (operacion: OperacionPayload | null = null) => {
     if (operacion) {
       setSelectedOperacion(operacion);
       setOperacionPayload(operacion);
     } else {
-      const nuevaOp = {
+      const nuevaOp: OperacionPayload = {
         estado: 1,
         usuario_creacion: `${user?.nombre} ${user?.apellido}`,
       };
@@ -448,6 +603,7 @@ const Operaciones: React.FC = () => {
     }
     setShowModal(true);
   };
+
 
   const handleSave = async () => {
     if (!selectedOperacion) return;
@@ -469,6 +625,8 @@ const Operaciones: React.FC = () => {
       console.error("Error al guardar operación:", error);
     }
   };
+
+
 
   // Filtro de búsqueda por póliza o cliente
   const filteredOperaciones = operaciones.filter(op =>
@@ -573,11 +731,11 @@ const Operaciones: React.FC = () => {
               <tr className="bg-[#09589f]">
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">#</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Nro Póliza</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Cliente</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Documento Identidad</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Fecha Nacimiento</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Producto</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-white tracking-wider">Estado</th>
                 <th className="px-4 py-2 text-center text-xs font-medium text-white tracking-wider">Acciones</th>
               </tr>
             </thead>
@@ -586,6 +744,16 @@ const Operaciones: React.FC = () => {
                 <tr key={idx} className="hover:bg-gray-50">
                   <td className="px-4 py-2 text-xs text-gray-900">{op.id}</td>
                   <td className="px-4 py-2 text-xs text-gray-900">{op.nro_poliza}</td>
+                  <td className="px-4 py-2 text-xs text-gray-600">
+                    <span className={clsx(
+                      "inline-flex items-center px-2 py-1 text-xs rounded transition-colors",
+                      op.estado_operacion === 1
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
+                    )}>
+                      {op.estado}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 text-xs text-gray-600">
                     {op.nombre_completo}
                   </td>
@@ -597,16 +765,6 @@ const Operaciones: React.FC = () => {
                       : ""}
                   </td>
                   <td className="px-4 py-2 text-xs text-gray-600">{op.producto}</td>
-                  <td className="px-4 py-2 text-xs text-gray-600">
-                    <span className={clsx(
-                      "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-                      op.estado === 1 
-                        ? "bg-green-100 text-green-800"
-                        : "bg-blue-100 text-blue-800"
-                    )}>
-                      {op.estado === 1 ? "Vigente" : "Generado"}
-                    </span>
-                  </td>
                   <td className="px-4 py-2 text-center">
                     <div className="flex justify-center space-x-2">
                       <button
@@ -621,20 +779,16 @@ const Operaciones: React.FC = () => {
                         Editar
                       </button>
                       <button
+                        onClick={() => openBeneficiarioModal(op)}
                         className="inline-flex items-center px-2 py-1 text-xs rounded text-green-600 bg-green-50 hover:bg-green-100 transition-colors"
                       >
                         Beneficiario
                       </button>
                       <button
-  onClick={() => generarPDF(op)}
-  className="inline-flex items-center px-2 py-1 text-xs rounded text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
->
-  PDF
-</button>
-                      <button
-                        className="inline-flex items-center px-2 py-1 text-xs rounded text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                        onClick={() => generarPDF(op)}
+                        className="inline-flex items-center px-2 py-1 text-xs rounded text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
                       >
-                        Cancelar
+                        PDF
                       </button>
                     </div>
                   </td>
@@ -662,7 +816,7 @@ const Operaciones: React.FC = () => {
                       : "text-gray-500 hover:bg-gray-100"
                   )}
                   style={
-                    currentPage === idx + 1 
+                    currentPage === idx + 1
                       ? { backgroundColor: colors.secondary.main }
                       : undefined
                   }
@@ -676,20 +830,195 @@ const Operaciones: React.FC = () => {
       </div>
 
       {/* Modal */}
-      {showModal && (
+      {showModal && selectedOperacion && (
         <div className="fixed inset-0 overflow-y-auto z-50">
           <div className="flex items-center justify-center min-h-screen p-4">
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowModal(false)} />
             <div className="relative bg-white rounded-lg shadow-lg w-full max-w-6xl">
               <div className="px-4 py-3 border-b border-gray-200">
                 <h3 className="text-sm font-medium" style={{ color: colors.secondary.main }}>
-                  {selectedOperacion?.nro_poliza ? "Editar Operación" : "Nueva Operación"}
+                  {selectedOperacion?.id ? "Editar Operación" : "Nueva Operación"}
                 </h3>
               </div>
-              
+
               <div className="p-4 space-y-6">
-                {/* <OperacionProducto onChange={(data) => setOperacionPayload((prev) => ({ ...prev, ...data }))} />
-                <OperacionCliente onChange={(data) => setOperacionPayload((prev) => ({ ...prev, ...data }))} /> */}
+
+                {selectedOperacion?.id ?
+                  <div className="bg-gray-200 p-3 rounded-lg">
+                    <span className="block px-4 text-gray-400 text-medium" style={{ color: colors.primary.dark }}>
+                      <strong>Información del Solicitud del Seguro </strong>
+                    </span>
+                    <Divider></Divider>
+                    <div>
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="bg-gray-200 p-3 rounded-lg">
+                          <span className="block text-gray-500 text-xs">Numero Poliza:</span>
+                          <span className="text-xs px-5">{selectedOperacion.id_cliente || 'No registrado'}</span>
+                          <span className={clsx(
+                            "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+                            selectedOperacion.estado === 1
+                              ? "bg-green-100 text-green-800"
+                              : "bg-blue-600 text-white"
+                          )}>
+                            {selectedOperacion.estado === 1 ? "Vigente" : "Generado"}
+                          </span>
+                        </div>
+                        <div className="bg-gray-200 p-3 rounded-lg">
+                          <span className="block text-gray-500 text-xs">Fecha Solicitud:</span>
+                          <span className="text-xs px-5">{selectedOperacion.fecha_creacion?.toString().substring(0, 10) || 'No registrado'}</span>
+                        </div>
+                        <div className="bg-gray-200 p-3 rounded-lg">
+                          <span className="block text-gray-500 text-xs">Fecha Vigencia:</span>
+                          <span className="text-xs px-5">{selectedOperacion.fechavigencia?.toString() === 'S/D' ? selectedOperacion.fechavigencia : selectedOperacion.fechavigencia?.toString().substring(0, 10)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  :
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+                    <div className="max-w-3xl">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-1">Operación Cliente</h2>
+                      <p className="text-sm text-gray-500">Complete la información del cliente para continuar</p>
+
+                      {/* Buscador mejorado */}
+                      <div className="mt-0">
+                        <Select
+                          options={clienteOptions}
+                          onChange={handleSelectCliente}
+                          placeholder="🔍 Buscar cliente por documento o nombre"
+                          isClearable
+                          className="text-sm"
+                          classNamePrefix="select"
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '2.5rem',
+                              boxShadow: 'none',
+                              borderColor: '#e5e7eb',
+                              '&:hover': {
+                                borderColor: '#09589f'
+                              }
+                            })
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                {selectedOperacion?.id_cliente && (
+                  <div className="bg-gray-200 p-3 rounded-lg">
+                    <span
+                      className="block px-4 text-gray-400 text-medium"
+                      style={{ color: colors.primary.dark }}
+                    >
+                      <strong>Información del cliente</strong>
+                    </span>
+                    <Divider />
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-3">
+                      <div className="bg-gray-200 p-3 rounded-lg">
+                        <span className="block text-gray-500 text-xs">Codigo Cliente:</span>
+                        <span className="text-xs px-5">
+                          {selectedOperacion?.id_cliente || "No registrado"}
+                        </span>
+                      </div>
+                      <div className="bg-gray-200 p-3 rounded-lg">
+                        <span className="block text-gray-500 text-xs">Nombre Cliente:</span>
+                        <span className="text-xs px-5">
+                          {selectedOperacion?.nombre_completo || "No registrado"}
+                        </span>
+                      </div>
+                      <div className="bg-gray-200 p-3 rounded-lg">
+                        <span className="block text-gray-500 text-xs">Tipo Documento:</span>
+                        <span className="text-xs px-5">
+                          {selectedOperacion?.tipo_documento ?? "No registrado"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-3">
+                      <div className="bg-gray-200 p-3 rounded-lg">
+                        <span className="block text-gray-500 text-xs">Numero Documento:</span>
+                        <span className="text-xs px-5">
+                          {selectedOperacion?.nro_documento || "No registrado"}
+                        </span>
+                      </div>
+                      <div className="bg-gray-200 p-3 rounded-lg">
+                        <span className="block text-gray-500 text-xs">Fecha Nacimiento:</span>
+                        <span className="text-xs px-5">
+                          {selectedOperacion?.fechanacimiento
+                            ? new Date(selectedOperacion.fechanacimiento).toLocaleDateString("es-BO")
+                            : "No registrado"}
+                        </span>
+                      </div>
+                      <div className="bg-gray-200 p-3 rounded-lg">
+                        <span className="block text-gray-500 text-xs">Estado Civil:</span>
+                        <span className="text-xs px-5">
+                          {selectedOperacion?.estado_civil || "No registrado"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
+
+                {selectedOperacion?.id_seguro_producto ?
+                  "" :
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+                    <div className="max-w-3xl">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-1">PRODUCTO</h2>
+                      <p className="text-sm text-gray-500">Complete la información del cliente para continuar</p>
+
+                      {/* Buscador mejorado */}
+                      <div className="mt-0">
+                        <Select
+                          options={productoOptions}
+                          onChange={handleSelectProducto}
+                          placeholder="🔍 Buscar producto"
+                          isClearable
+                          className="text-sm"
+                          classNamePrefix="select"
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '2.5rem',
+                              boxShadow: 'none',
+                              borderColor: '#e5e7eb',
+                              '&:hover': {
+                                borderColor: '#09589f'
+                              }
+                            })
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                {selectedOperacion?.id_seguro_producto && (
+                  <div className="bg-gray-200 p-3 rounded-lg">
+                    <span className="block px-4 text-gray-400 text-medium" style={{ color: colors.primary.dark }}><strong>Información del Producto</strong></span>
+                    <Divider></Divider>
+                    <div>
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="bg-gray-200 p-3 rounded-lg">
+                          <span className="block text-gray-500 text-xs">Producto:</span>
+                          <span className="text-xs px-5">{selectedOperacion.producto || 'No registrado'}</span>
+                        </div>
+                        <div className="bg-gray-200 p-3 rounded-lg">
+                          <span className="block text-gray-500 text-xs">Empresa:</span>
+                          <span className="text-xs px-5">{selectedOperacion.empresa}</span>
+                        </div>
+                        <div className="bg-gray-200 p-3 rounded-lg">
+                          <span className="block text-gray-500 text-xs">Precio Seguro:</span>
+                          <span className="text-xs px-5">Bs.- {selectedOperacion.precio || 'No registrado'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
@@ -711,6 +1040,96 @@ const Operaciones: React.FC = () => {
           </div>
         </div>
       )}
+
+      {showBeneficiarioModal && (
+        <div className="fixed inset-0 overflow-y-auto z-50">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowBeneficiarioModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-lg w-full max-w-3xl">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-medium text-gray-700">
+                  Beneficiarios del producto #{operacionActual?.id_seguro_producto}
+                </h3>
+              </div>
+
+              <div className="p-4">
+                <table className="min-w-full border border-gray-200 rounded-lg">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-3 py-2 text-xs">Nombre</th>
+                      <th className="px-3 py-2 text-xs">Documento</th>
+                      <th className="px-3 py-2 text-xs">Parentesco</th>
+                      <th className="px-3 py-2 text-xs">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {beneficiarios.map((b, idx) => (
+                      <tr key={idx}>
+                        <td className="px-3 py-2">
+                          <input
+                            type="text"
+                            value={b.nombre}
+                            onChange={(e) => handleChangeBeneficiario(idx, "nombre", e.target.value)}
+                            className="border px-2 py-1 text-xs rounded w-full"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <input
+                            type="text"
+                            value={b.documento}
+                            onChange={(e) => handleChangeBeneficiario(idx, "documento", e.target.value)}
+                            className="border px-2 py-1 text-xs rounded w-full"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <input
+                            type="text"
+                            value={b.parentesco}
+                            onChange={(e) => handleChangeBeneficiario(idx, "parentesco", e.target.value)}
+                            className="border px-2 py-1 text-xs rounded w-full"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <button
+                            onClick={() => handleRemoveBeneficiario(idx)}
+                            className="text-red-600 text-xs"
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <button
+                  onClick={handleAddBeneficiario}
+                  className="mt-2 px-3 py-1 text-xs bg-green-500 text-white rounded"
+                >
+                  + Agregar Beneficiario
+                </button>
+              </div>
+
+              <div className="px-4 py-3 bg-gray-50 flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowBeneficiarioModal(false)}
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-200 rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveBeneficiarios}
+                  className="px-3 py-1.5 text-xs font-medium text-white rounded"
+                  style={{ backgroundColor: colors.secondary.main }}
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
