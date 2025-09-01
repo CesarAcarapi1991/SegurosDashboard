@@ -50,6 +50,7 @@ const MainLayout: React.FC = () => {
 
   const handleLogout = () => logout();
 
+  
   // Menú con iconos pequeños
   const menuItems = [
     { 
