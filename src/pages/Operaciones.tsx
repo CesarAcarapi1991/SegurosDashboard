@@ -997,6 +997,7 @@ const Operaciones: React.FC = () => {
                   </div>
                 }
 
+
                 {selectedOperacion?.id_seguro_producto && (
                   <div className="bg-gray-200 p-3 rounded-lg">
                     <span className="block px-4 text-gray-400 text-medium" style={{ color: colors.primary.dark }}><strong>Información del Producto</strong></span>
