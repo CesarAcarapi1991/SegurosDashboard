@@ -26,8 +26,8 @@ const AppRoutes: React.FC = () => {
       <Route element={<PrivateRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {/* <Route path="dashboard" element={<Dashboard />} />
-          <Route path="perfil" element={<Perfil />} /> */}
+          <Route path="dashboard" element={<Dashboard />} />
+          {/* <Route path="perfil" element={<Perfil />} /> */}
           
           <Route path="seguros" element={<Seguros />} />
           <Route path="/seguros/operaciones" element={<Operaciones />} />
